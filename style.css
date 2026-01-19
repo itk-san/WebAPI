@@ -1,0 +1,122 @@
+body {
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+    color: #333;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 40px 20px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+
+p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+form {
+    background-color: #fff;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* 入力ラベル */
+form div, 
+form label div {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+    text-align: left; 
+}
+
+/* テキストボックスとセレクトボックス */
+#search,
+select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+    
+}
+
+#search:focus,
+select:focus {
+    border-color: #3498db; /* フォーカス時に青枠 */
+    outline: none;
+}
+
+/* ボタン */
+#button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 12px 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#button:hover {
+    background-color: #2980b9;
+}
+
+/* ----------------------------------
+   検索結果エリアのデザイン
+   ---------------------------------- */
+#result {
+    margin-top: 40px;
+    text-align: left;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#result h2 {
+    font-size: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#result li {
+    list-style: none;
+    display: inline-block;
+    vertical-align: top;
+    width: 180px;
+    margin: 10px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+#result img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    object-fit: cover;
+    aspect-ratio: 2 / 3; /* 画像比率を統一 */
+}
+
+#result h3 {
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.4;
+}
