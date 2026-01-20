@@ -56,7 +56,7 @@ async function getAnimeRecommendations(animeName) {
         } else {
             resultTxt = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……<h2>`
             list.forEach(element => {
-                    resultTxt += `<li><a href="${element.entry.url}" target="_blank" rel="noopener noreferrer"><img src=${element.entry.images.jpg.image_url}/><h3>${element.entry.title}\n${element.type}</h3></a></li>`;    
+                    resultTxt += `<li><a href="${element.entry.url}" target="_blank" rel="noopener noreferrer"><img src=${element.entry.images.jpg.image_url}/><h3>${element.entry.title}</h3></a></li>`;    
             });
             resultTxt += "</ul>";
         }
