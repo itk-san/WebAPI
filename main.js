@@ -1,15 +1,20 @@
 
+// テキストボックスのDOMを取得
 let search = document.getElementById("search");    
 
+// セレクトボックスのDOMを取得、セレクトボックスの値を変数に確保
 let quantity = document.getElementById("quantity");
 let resultQuantity = quantity.value;
+
+// ボタンのDOMを取得
+let button = document.getElementById("button");
+
 
 // セレクトボックスが変更された時の処理
 quantity.addEventListener("change", (e)=> {
     resultQuantity = e.target.value;
 });
 
-let button = document.getElementById("button");
 button.addEventListener("click", ()=>{
     let searchWord = search.value;
     if (searchWord=="") {
@@ -19,6 +24,8 @@ button.addEventListener("click", ()=>{
     getAnimeRecommendations(searchWord);
     
 });
+
+//　入力された作品名を引数にして、おススメのアニメを取ってくる
 async function getAnimeRecommendations(animeName) {
     let result = document.getElementById("result");
     result.innerHTML="<p>検索中……</p>";
@@ -45,7 +52,7 @@ async function getAnimeRecommendations(animeName) {
         if (list.length===0) {
             result.innerHTML = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
         } else {
-            result.innerHTML = `<h2>「${animeName}」を見たあなたにおススメのアニメは……<h2>`
+            result.innerHTML = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……<h2>`
             list.forEach(element => {
                     result.innerHTML += `<li><img src=${element.entry.images.jpg.image_url}/><h3>${element.entry.title}</h3></li>`;    
             });
