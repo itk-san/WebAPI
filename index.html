@@ -10,7 +10,7 @@
     <h1>あなたが次に見るアニメ</h1>
     <p>「次、何のアニメを見よう……」誰しもそんな風に思ったことがあると思います。<br>でも、大丈夫です！このアプリは、あなたが次に見るべきアニメをおススメします！</p>
     <p>下の欄に、あなたが見たことあるアニメの作品名を入力してからボタンを押すと、そのアニメに類似する作品を表示します。<br>(APIの仕様上、表示されるタイトルは英語/ローマ字表記です)</p>
-    <form>
+    <form id="form">
         <div>作品名の入力</div>
         <input type="text" id="search" size="60" placeholder="作品名を入力  (略称でも可。ただし精度が下がる可能性があります)">
         <label for="quantity">
@@ -28,10 +28,9 @@
                 <option value="10">10件</option>
             </select>
         </label>
-        <input type="button" id="button" value="表示">
-        <div id="result"></div>
-        
+        <input type="submit" id="button" value="表示">
     </form>
+    <div id="result"></div>
     <script src="main.js"></script>
 </body>
 </html>

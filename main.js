@@ -7,7 +7,7 @@ let quantity = document.getElementById("quantity");
 let resultQuantity = quantity.value;
 
 // ボタンのDOMを取得
-let button = document.getElementById("button");
+let form = document.getElementById("form");
 
 
 // セレクトボックスが変更された時の処理
@@ -15,7 +15,8 @@ quantity.addEventListener("change", (e)=> {
     resultQuantity = e.target.value;
 });
 
-button.addEventListener("click", ()=>{
+form.addEventListener("submit", (e)=>{
+    e.preventDefault();
     let searchWord = search.value;
     if (searchWord=="") {
         alert("作品名を入力してください！");
@@ -49,15 +50,17 @@ async function getAnimeRecommendations(animeName) {
 
         // 結果の表示
         let list = recommendData.data.slice(0, resultQuantity);
+        let resultTxt = "";
         if (list.length===0) {
-            result.innerHTML = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
+            resultTxt = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
         } else {
-            result.innerHTML = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……<h2>`
+            resultTxt = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……<h2>`
             list.forEach(element => {
-                    result.innerHTML += `<li><img src=${element.entry.images.jpg.image_url}/><h3>${element.entry.title}</h3></li>`;    
+                    resultTxt += `<li><a href="${element.entry.url}" target="_blank" rel="noopener noreferrer"><img src=${element.entry.images.jpg.image_url}/><h3>${element.entry.title}\n${element.type}</h3></a></li>`;    
             });
-            result.innerHTML += "</ul>";
+            resultTxt += "</ul>";
         }
+        result.innerHTML = resultTxt;
     } catch (error) {
         console.error("エラーが発生しました", error);
     }
