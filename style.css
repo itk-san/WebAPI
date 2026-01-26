@@ -119,3 +119,63 @@ select:focus {
     margin: 0;
     line-height: 1.4;
 }
+
+.click-btn {
+    display: block;
+    margin: 20px auto;
+    background-color: purple;
+    color: white;
+    border: 0;
+    padding: 6px 10px;
+}
+
+.popup-wrapper {
+    background-color: rgba(0, 0, 0, .5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+.popup-inside {
+    text-align: center;
+    width: fit-content;
+    min-width: 300px;
+    max-width: 600px;
+    height: auto;
+    max-height: 80vh;
+    background: white;
+    margin: 10% auto;
+    padding: 20px;
+    position: relative;
+    overflow-y: auto;
+}
+
+.message {
+    display: flex;
+    justify-content: center;
+}
+
+.message a {
+    background: purple;
+    color: white;
+    text-decoration: none;
+    padding: 6px 10px;
+}
+
+.close {
+    position: absolute;
+    top: 10;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #888;
+    border-bottom: #888;
+}
+
+.close-btn:hover {
+    color: #333;
+}
