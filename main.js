@@ -16,7 +16,7 @@ quantity.addEventListener("change", (e)=> {
 
 // ボタンクリックあるいはEnterで送信された時の処理
 form.addEventListener("submit", (e)=>{
-    e.preventDefault();
+    e.preventDefault(); // フォーム送信の際の再読み込みを回避
     let searchWord = search.value;
     if (searchWord=="") {
         alert("作品名を入力してください！");
@@ -28,7 +28,7 @@ form.addEventListener("submit", (e)=>{
 
 
 
-//　入力された作品名を引数にして、おススメのアニメを取ってくる
+//　入力された作品名を引数にして、おススメのアニメを取ってくる関数
 async function getAnimeRecommendations(animeName) {
     let result = document.getElementById("result");
     result.innerHTML="<p>検索中……(この処理には時間がかかる場合があります)</p>";
@@ -62,9 +62,11 @@ async function getAnimeRecommendations(animeName) {
             resultTxt = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
         } else {
             resultTxt = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……<h2>`
+
+            // listの数だけHTMLを生成
             for(let element of list){
                 try {
-                    
+                    // click-btnクラスのボタンにdata-id属性でアニメIDを埋めておく
                     resultTxt +=
                         `<li>
                             <div>
@@ -84,12 +86,12 @@ async function getAnimeRecommendations(animeName) {
                             </div>
                         </li>`;
                 } catch (error) {
-                    return;
+                    continue; // エラーがあっても次ループへ
                 }
             };
             resultTxt += "</ul>";
             result.innerHTML = resultTxt;
-            
+            // 結果を表示してからボタンにイベントを付与する
             setButtonEvents();
         }
     } catch (error) {
@@ -98,27 +100,39 @@ async function getAnimeRecommendations(animeName) {
     }
 }
 
+// 生成されたボタンたちにイベントを付与する関数
 function setButtonEvents() {
+    // あらすじ表示用ボタンのDOMを取得
     let buttons = document.querySelectorAll(".click-btn");
     
     buttons.forEach(btn => {
         btn.addEventListener("click", async function() {
+            // クリックされたボタンの次にある要素（ポップアップ）を取得
             let popup = this.nextElementSibling; 
-            let contentArea = popup.querySelector(".synopsis-content");
-            let popupInside = popup.querySelector(".popup-inside");
+
+            // ポップアップ内のDOMを取得
+            let popupInside = popup.querySelector(".popup-inside"); 
+
+            // あらすじ表示用の領域のDOMを取得
+            let contentArea = popup.querySelector(".synopsis-content"); 
             
+            // ポップアップ表示
             popup.style.display = "block";
             
+            // すでに読み込んでいたら（loadedクラスが存在するなら）fetchしない
             if (this.classList.contains("loaded")) {
                 return;
             }
             
+            // あらすじ表示用ボタンに埋め込んでおいたアニメIDを取得
             let dataId = this.getAttribute("data-id");
             contentArea.innerHTML="<p>読み込み中……</p>"
             
             try {
+                // 詳細データを取得
                 let summuriesResult = await fetch(`https://api.jikan.moe/v4/anime/${dataId}`);
                 let summuriesData = await summuriesResult.json();
+
                 let synopsis;
                 if (!summuriesData.data.synopsis || summuriesData.data.synopsis == "") {
                     synopsis = "あらすじ情報が見つかりませんでした。"
@@ -126,9 +140,13 @@ function setButtonEvents() {
                     synopsis = summuriesData.data.synopsis;
                 }
                 
+                // 取得したあらすじを表示
                 contentArea.innerHTML = `<p>${synopsis}</p>`;
+
+                // loadedクラスを付与。二度fetchされることのないようにする
                 this.classList.add("loaded");
                 
+                // あらすじ文をコピーするボタンを生成
                 let copyBtn = document.createElement("button");
                 copyBtn.classList.add("copyBtn");
                 copyBtn.innerHTML = "あらすじをコピー";
@@ -137,7 +155,7 @@ function setButtonEvents() {
                         alert("このブラウザは対応していません");
                         return;
                     }
-
+                    // クリップボードAPIを使ってコピー
                     navigator.clipboard.writeText(synopsis).then(
                         () => {
                             alert('クリップボードにコピーしました！');
@@ -147,12 +165,15 @@ function setButtonEvents() {
                         }
                     );
                 });
+
+                // DeepLへのリンク生成
                 let translatorSite = document.createElement("a");
                 translatorSite.href = "https://www.deepl.com/ja/translator";
                 translatorSite.innerHTML = "翻訳サイトへ(DeepLに遷移します)";
                 translatorSite.target = "_blank";
                 translatorSite.rel = "noopener noreferrer";
-                // target="_blank" rel="noopener noreferrer"
+
+                // ポップアップ内にボタンとリンクを追加
                 popupInside.appendChild(copyBtn);
                 popupInside.appendChild(translatorSite);
 
@@ -163,10 +184,11 @@ function setButtonEvents() {
             });
         });
 
-    // 閉じるボタンと背景クリックの処理
+    // Xボタンまたはポップアップ背景をクリックしたとき、ポップアップを閉じる処理
     let popups = document.querySelectorAll(".popup-wrapper");
     popups.forEach(popup => {
         popup.addEventListener("click", function(e) {
+            // クリックされたのがwrapperかXボタンのときだけ閉じる　ポップアップの中身をクリックしても閉じないように
             if (e.target.classList.contains("popup-wrapper") || e.target.classList.contains("close-btn")) {
                 this.style.display = "none";
             }
