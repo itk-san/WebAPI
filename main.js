@@ -50,6 +50,7 @@ async function getAnimeRecommendations(animeName) {
         let recommendResult = await fetch(`https://api.jikan.moe/v4/anime/${animeId}/recommendations`);
         let recommendData = await recommendResult.json();
 
+
         // 結果の表示
         let list;
         if (resultQuantity == "") {
@@ -75,14 +76,14 @@ async function getAnimeRecommendations(animeName) {
                                     <div>${element.entry.title}</div>
                                 </a>
                             </div>
-                            <button class="click-btn" data-id="${element.entry.mal_id}">詳細を見る(英語)</button>
+                            <button class="click-btn" data-id="${element.entry.mal_id}">詳細を見る</button>
                             <div class="popup-wrapper" style="display:none;">
                                 <div class="popup-inside">
                                     <button class="close-btn">X</button>
+                                    <h2 class="detail-title"></h3>
                                     <div class="detail-content">
                                         <p>読み込み中……</p>
                                     </div>
-                                    <button class="copyBtn">あらすじをコピー</button>
                                     <a class="translateSender" href="https://www.deepl.com/ja/translator" target="_blank" rel="noopener noreferrer">翻訳サイトへ(DeepLに遷移します)</a>
                                 </div>
                             </div>
@@ -115,8 +116,11 @@ function setButtonEvents() {
             // ポップアップ内のDOMを取得
             let popupInside = popup.querySelector(".popup-inside"); 
 
-            // あらすじ表示用の領域のDOMを取得
+            // 詳細表示用の領域のDOMを取得
             let contentArea = popup.querySelector(".detail-content"); 
+
+            // タイトル表示のDOMを取得
+            let detailTitle = popup.querySelector(".detail-title");
             
             // ポップアップ表示
             popup.style.display = "block";
@@ -135,6 +139,8 @@ function setButtonEvents() {
                 let summuriesResult = await fetch(`https://api.jikan.moe/v4/anime/${dataId}`);
                 let summuriesData = await summuriesResult.json();
 
+                detailTitle.textContent = summuriesData.data.title_japanese || summuriesData.data.title;
+
                 let genres = "ジャンル: ";
                 if (summuriesData.data.genres.length == 0) {
                     genres += "ジャンル情報が見つかりませんでした。";
@@ -149,12 +155,13 @@ function setButtonEvents() {
                 } else {
                     synopsis += summuriesData.data.synopsis;
                 }
-                
+
                 // 取得したあらすじを表示
                 contentArea.innerHTML = `
-                    <img src="${summuriesData.data.images.jpg.image_url}"/>
+                    
+                    <img src="${summuriesData.data.images.jpg.large_image_url || summuriesData.data.images.jpg.image_url}"/>
                     <div>
-                        <h4>${genres}</h4>
+                        <p>${genres}<p>
                         <p>${synopsis}</p>
                     </div>`;
 
@@ -162,7 +169,10 @@ function setButtonEvents() {
                 this.classList.add("loaded");
                 
                 // あらすじ文をコピーするボタンのDOMを取得
-                let copyBtn = document.querySelector(".copyBtn");
+                let copyBtn = document.createElement("button");
+                copyBtn.classList.add("copyBtn");
+                copyBtn.innerHTML = "あらすじをコピー";
+                
                 copyBtn.addEventListener("click", () => {
                     if (!navigator.clipboard) {
                         alert("このブラウザは対応していません");
@@ -171,6 +181,9 @@ function setButtonEvents() {
                     // クリップボードAPIを使ってコピー
                     navigator.clipboard.writeText(synopsis).then(
                         () => {
+                            if (this.classList.contains("copied")) {
+                                return;
+                            }
                             alert('クリップボードにコピーしました！');
                         },
                         () => {
@@ -178,6 +191,9 @@ function setButtonEvents() {
                         }
                     );
                 });
+                
+
+                popupInside.querySelector(".translateSender").before(copyBtn);
 
                 } catch (error) {
                     console.log(error);
