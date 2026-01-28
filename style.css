@@ -153,16 +153,18 @@ select:focus {
     overflow-y: auto;
 }
 
-.message {
+.detail-content {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 16px;
 }
 
-.message a {
+.detail-content a {
     background: purple;
     color: white;
     text-decoration: none;
     padding: 6px 10px;
+    text-align: center;
 }
 
 .close {

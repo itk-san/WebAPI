@@ -61,27 +61,29 @@ async function getAnimeRecommendations(animeName) {
         if (list.length===0) {
             resultTxt = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
         } else {
-            resultTxt = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……<h2>`
+            resultTxt = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……</h2><ul>`
 
             // listの数だけHTMLを生成
             for(let element of list){
                 try {
                     // click-btnクラスのボタンにdata-id属性でアニメIDを埋めておく
-                    resultTxt +=
-                        `<li>
+                    resultTxt += `
+                        <li>
                             <div>
                                 <a href="${element.entry.url}" target="_blank" rel="noopener noreferrer">
                                     <img src=${element.entry.images.jpg.image_url}/>
                                     <div>${element.entry.title}</div>
                                 </a>
                             </div>
-                            <button class="click-btn" data-id="${element.entry.mal_id}">あらすじを表示(英語)</button>
+                            <button class="click-btn" data-id="${element.entry.mal_id}">詳細を見る(英語)</button>
                             <div class="popup-wrapper" style="display:none;">
                                 <div class="popup-inside">
                                     <button class="close-btn">X</button>
-                                    <div class="message">
-                                        <p class="synopsis-content">読み込み中……</p>
+                                    <div class="detail-content">
+                                        <p>読み込み中……</p>
                                     </div>
+                                    <button class="copyBtn">あらすじをコピー</button>
+                                    <a class="translateSender" href="https://www.deepl.com/ja/translator" target="_blank" rel="noopener noreferrer">翻訳サイトへ(DeepLに遷移します)</a>
                                 </div>
                             </div>
                         </li>`;
@@ -114,7 +116,7 @@ function setButtonEvents() {
             let popupInside = popup.querySelector(".popup-inside"); 
 
             // あらすじ表示用の領域のDOMを取得
-            let contentArea = popup.querySelector(".synopsis-content"); 
+            let contentArea = popup.querySelector(".detail-content"); 
             
             // ポップアップ表示
             popup.style.display = "block";
@@ -133,23 +135,34 @@ function setButtonEvents() {
                 let summuriesResult = await fetch(`https://api.jikan.moe/v4/anime/${dataId}`);
                 let summuriesData = await summuriesResult.json();
 
-                let synopsis;
-                if (!summuriesData.data.synopsis || summuriesData.data.synopsis == "") {
-                    synopsis = "あらすじ情報が見つかりませんでした。"
+                let genres = "ジャンル: ";
+                if (summuriesData.data.genres.length == 0) {
+                    genres += "ジャンル情報が見つかりませんでした。";
                 } else {
-                    synopsis = summuriesData.data.synopsis;
+                    genres += summuriesData.data.genres.map(item => item.name);
+                }
+
+                let synopsis = "あらすじ: ";
+                if (!summuriesData.data.synopsis || summuriesData.data.synopsis == "") {
+                    synopsis += "あらすじ情報が見つかりませんでした。";
+                    
+                } else {
+                    synopsis += summuriesData.data.synopsis;
                 }
                 
                 // 取得したあらすじを表示
-                contentArea.innerHTML = `<p>${synopsis}</p>`;
+                contentArea.innerHTML = `
+                    <img src="${summuriesData.data.images.jpg.image_url}"/>
+                    <div>
+                        <h4>${genres}</h4>
+                        <p>${synopsis}</p>
+                    </div>`;
 
                 // loadedクラスを付与。二度fetchされることのないようにする
                 this.classList.add("loaded");
                 
-                // あらすじ文をコピーするボタンを生成
-                let copyBtn = document.createElement("button");
-                copyBtn.classList.add("copyBtn");
-                copyBtn.innerHTML = "あらすじをコピー";
+                // あらすじ文をコピーするボタンのDOMを取得
+                let copyBtn = document.querySelector(".copyBtn");
                 copyBtn.addEventListener("click", () => {
                     if (!navigator.clipboard) {
                         alert("このブラウザは対応していません");
@@ -165,17 +178,6 @@ function setButtonEvents() {
                         }
                     );
                 });
-
-                // DeepLへのリンク生成
-                let translatorSite = document.createElement("a");
-                translatorSite.href = "https://www.deepl.com/ja/translator";
-                translatorSite.innerHTML = "翻訳サイトへ(DeepLに遷移します)";
-                translatorSite.target = "_blank";
-                translatorSite.rel = "noopener noreferrer";
-
-                // ポップアップ内にボタンとリンクを追加
-                popupInside.appendChild(copyBtn);
-                popupInside.appendChild(translatorSite);
 
                 } catch (error) {
                     console.log(error);
