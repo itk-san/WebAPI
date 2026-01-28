@@ -139,8 +139,13 @@ function setButtonEvents() {
                 let summuriesResult = await fetch(`https://api.jikan.moe/v4/anime/${dataId}`);
                 let summuriesData = await summuriesResult.json();
 
+                // 日本語タイトルを取得
                 detailTitle.textContent = summuriesData.data.title_japanese || summuriesData.data.title;
 
+                // メイン画像を取得
+                let mainImg = summuriesData.data.images.jpg.large_image_url || summuriesData.data.images.jpg.image_url;
+
+                // 情報を取得
                 let genres = "ジャンル: ";
                 if (summuriesData.data.genres.length == 0) {
                     genres += "ジャンル情報が見つかりませんでした。";
@@ -148,6 +153,7 @@ function setButtonEvents() {
                     genres += summuriesData.data.genres.map(item => item.name);
                 }
 
+                // あらすじを取得
                 let synopsis = "あらすじ: ";
                 if (!summuriesData.data.synopsis || summuriesData.data.synopsis == "") {
                     synopsis += "あらすじ情報が見つかりませんでした。";
@@ -156,29 +162,33 @@ function setButtonEvents() {
                     synopsis += summuriesData.data.synopsis;
                 }
 
-                // 取得したあらすじを表示
+                // アニメの評価点数(10点満点中)を取得
+                let score = `評価: ${summuriesData.data.score}/10`;
+
+                // 取得した詳細情報を表示
                 contentArea.innerHTML = `
                     
-                    <img src="${summuriesData.data.images.jpg.large_image_url || summuriesData.data.images.jpg.image_url}"/>
+                    <img src="${mainImg}"/>
                     <div>
                         <p>${genres}<p>
+                        <p>${score}</p>
                         <p>${synopsis}</p>
                     </div>`;
 
                 // loadedクラスを付与。二度fetchされることのないようにする
                 this.classList.add("loaded");
                 
-                // あらすじ文をコピーするボタンのDOMを取得
+                // あらすじ文をコピーするボタンを生成
                 let copyBtn = document.createElement("button");
                 copyBtn.classList.add("copyBtn");
                 copyBtn.innerHTML = "あらすじをコピー";
                 
+                // クリップボードAPIを使ってコピー
                 copyBtn.addEventListener("click", () => {
                     if (!navigator.clipboard) {
                         alert("このブラウザは対応していません");
                         return;
                     }
-                    // クリップボードAPIを使ってコピー
                     navigator.clipboard.writeText(synopsis).then(
                         () => {
                             if (this.classList.contains("copied")) {
@@ -192,7 +202,7 @@ function setButtonEvents() {
                     );
                 });
                 
-
+                // 翻訳サイトへのリンクの前にコピー用のボタンを追加
                 popupInside.querySelector(".translateSender").before(copyBtn);
 
                 } catch (error) {
