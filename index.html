@@ -29,9 +29,27 @@
                 <option value="10">10件</option>
             </select>
         </label>
+        <label>
+            <div>並べ替え</div>
+            <select name="" id="sorter">
+                <option value="">おすすめ順</option>
+                <option value="title_asc">タイトル昇順 (A-Z)</option>
+                <option value="title_desc">タイトル降順 (Z-A)</option>
+                <option value="vote_desc">おすすめ度が高い順</option>
+                <option value="vote_asc">おすすめ度が低い順</option>
+            </select>
+        </label>
         <input type="submit" id="button" value="表示">
     </form>
-    <div id="result"></div>
+    <section class="info-box">
+        <h3>このアプリのしくみ</h3>
+        <p>このアプリに使用されている「Jikan API」は、世界最大級のアニメサイト「MyAnimeList」のデータを活用しています。<br>特定のアルゴリズムだけでなく、実際のユーザーたちによる「○○が好きなら、これも好きだろうという提案」に基づいています。</p>
+        <ul>
+            <li>おすすめ順: 提案が新しく、今注目されている組み合わせ順です。</li>
+            <li>おすすめ度(Votes)順: 多くのユーザーが「確かにこの2作品は似ている」と賛成票を投じた信頼度順です。</li>
+        </ul>
+    </section>
+        <div id="result"></div>
     <script src="main.js"></script>
 </body>
 </html>

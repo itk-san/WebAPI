@@ -2,16 +2,33 @@
 // テキストボックスのDOMを取得
 let search = document.getElementById("search");    
 
-// セレクトボックスのDOMを取得、セレクトボックスの値を変数に確保
+// 最大表示量用のセレクトボックスのDOMを取得、セレクトボックスの値を変数に確保
 let quantity = document.getElementById("quantity");
 let resultQuantity = quantity.value;
 
 // フォームのDOMを取得
 let form = document.getElementById("form");
 
+// 取得したアニメを保存しておく配列と、作品名を保存しておく変数
+let list = [];
+let currentTitle;
+
+// 並べ替え用のセレクトボックスのDOMを取得、値を変数に確保
+let sorter = document.getElementById("sorter");
+let resultSort = sorter.value;
+
+// 検索結果表示領域用のDOMを取得
+let result = document.getElementById("result");
+
 // セレクトボックスが変更された時の処理
 quantity.addEventListener("change", (e)=> {
     resultQuantity = e.target.value;
+});
+
+// 並べ替えボックスが変更された時の処理
+sorter.addEventListener("change", (e) => {
+    resultSort = e.target.value;
+    sortAndDisplayAnimeList();
 });
 
 // ボタンクリックあるいはEnterで送信された時の処理
@@ -26,11 +43,8 @@ form.addEventListener("submit", (e)=>{
     
 });
 
-
-
 //　入力された作品名を引数にして、おススメのアニメを取ってくる関数
 async function getAnimeRecommendations(animeName) {
-    let result = document.getElementById("result");
     result.innerHTML="<p>検索中……(この処理には時間がかかる場合があります)</p>";
 
     try {
@@ -45,61 +59,102 @@ async function getAnimeRecommendations(animeName) {
         
         // 取ってきたidからおススメのアニメを取得する
         let animeId = searchData.data[0].mal_id;
-        let animeTitle = searchData.data[0].title_japanese || searchData.data[0].title;
+        // タイトルを保存しておく
+        currentTitle = searchData.data[0].title_japanese || searchData.data[0].title;
         
         let recommendResult = await fetch(`https://api.jikan.moe/v4/anime/${animeId}/recommendations`);
         let recommendData = await recommendResult.json();
 
-
-        // 結果の表示
-        let list;
         if (resultQuantity == "") {
             list = recommendData.data;
         } else {
             list = recommendData.data.slice(0, resultQuantity);
         }
-        let resultTxt = "";
-        if (list.length===0) {
-            resultTxt = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
-        } else {
-            resultTxt = `<h2>「${animeTitle}」を見たあなたにおススメのアニメは……</h2><ul>`
+        
+        // ソート後に表示
+        sortAndDisplayAnimeList();
 
-            // listの数だけHTMLを生成
-            for(let element of list){
-                try {
-                    // click-btnクラスのボタンにdata-id属性でアニメIDを埋めておく
-                    resultTxt += `
-                        <li>
-                            <div>
-                                <a href="${element.entry.url}" target="_blank" rel="noopener noreferrer">
-                                    <img src=${element.entry.images.jpg.image_url}/>
-                                    <div>${element.entry.title}</div>
-                                </a>
-                            </div>
-                            <button class="click-btn" data-id="${element.entry.mal_id}">詳細を見る</button>
-                            <div class="popup-wrapper" style="display:none;">
-                                <div class="popup-inside">
-                                    <button class="close-btn">X</button>
-                                    <h2 class="detail-title"></h3>
-                                    <div class="detail-content">
-                                        <p>読み込み中……</p>
-                                    </div>
-                                    <a class="translateSender" href="https://www.deepl.com/ja/translator" target="_blank" rel="noopener noreferrer">翻訳サイトへ(DeepLに遷移します)</a>
-                                </div>
-                            </div>
-                        </li>`;
-                } catch (error) {
-                    continue; // エラーがあっても次ループへ
-                }
-            };
-            resultTxt += "</ul>";
-            result.innerHTML = resultTxt;
-            // 結果を表示してからボタンにイベントを付与する
-            setButtonEvents();
-        }
     } catch (error) {
         console.error("エラーが発生しました", error);
         result.innerHTML = "<p>エラーが発生しました。時間を置いて再度お試しください。</p>";        
+    }
+}
+
+function sortAndDisplayAnimeList() {
+    // 元の配列を中身を保持するために、配列をコピー
+    let displayList = [...list];
+
+    // ソート
+    switch (resultSort) {
+        // タイトル昇順
+        case "title_asc":
+            displayList.sort((a,b) => {
+                return a.entry.title.localeCompare(b.entry.title);
+            });
+            break;
+        // タイトル降順
+        case "title_desc":
+            displayList.sort((a,b) => {
+                return b.entry.title.localeCompare(a.entry.title);
+            });
+            break;
+
+        // 投票数が多い順
+        case "vote_desc": 
+            displayList.sort((a,b) => {
+                return b.votes - a.votes;
+            });
+            break;
+
+        // 投票数が少ない順
+        case "vote_asc":
+            displayList.sort((a,b) => {
+                return a.votes - b.votes;
+            });
+            break;
+
+        default:
+            break;
+    }
+
+    let resultTxt = "";
+    if (displayList.length===0) {
+        resultTxt = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
+    } else {
+        resultTxt = `<h2>「${currentTitle}」を見たあなたにおススメのアニメは……</h2><ul>`
+
+        // listの数だけHTMLを生成
+        for(let element of displayList){
+            try {
+                // click-btnクラスのボタンにdata-id属性でアニメIDを埋めておく
+                resultTxt += `
+                    <li>
+                        <div>
+                            <a href="${element.entry.url}" target="_blank" rel="noopener noreferrer">
+                                <img src="${element.entry.images.jpg.image_url}"/>
+                                <div>${element.entry.title}</div>
+                            </a>
+                        </div>
+                        <button class="click-btn" data-id="${element.entry.mal_id}">詳細を見る</button>
+                        <div class="popup-wrapper" style="display:none;">
+                            <div class="popup-inside">
+                                <button class="close-btn">X</button>
+                                <h2 class="detail-title"></h3>
+                                <div class="detail-content">
+                                    <p>読み込み中……</p>
+                                </div>
+                                <a class="translateSender" href="https://www.deepl.com/ja/translator" target="_blank" rel="noopener noreferrer">翻訳サイトへ(DeepLに遷移します)</a>
+                            </div>
+                        </div>
+                    </li>`;
+            } catch (error) {
+                continue; // エラーがあっても次ループへ
+            }
+        };
+        resultTxt += "</ul>";
+        result.innerHTML = resultTxt;
+        // 結果を表示してからボタンにイベントを付与する
+        setButtonEvents();
     }
 }
 
@@ -210,9 +265,6 @@ function setButtonEvents() {
                     }
                     navigator.clipboard.writeText(synopsis).then(
                         () => {
-                            if (this.classList.contains("copied")) {
-                                return;
-                            }
                             alert('クリップボードにコピーしました！');
                         },
                         () => {
