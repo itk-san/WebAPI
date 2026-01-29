@@ -1,4 +1,3 @@
-
 // テキストボックスのDOMを取得
 let search = document.getElementById("search");    
 
