@@ -136,40 +136,59 @@ function setButtonEvents() {
             
             try {
                 // 詳細データを取得
-                let summuriesResult = await fetch(`https://api.jikan.moe/v4/anime/${dataId}`);
-                let summuriesData = await summuriesResult.json();
+                let summariesResult = await fetch(`https://api.jikan.moe/v4/anime/${dataId}`);
+                let summariesData = await summariesResult.json();
 
                 // 日本語タイトルを取得
-                detailTitle.textContent = summuriesData.data.title_japanese || summuriesData.data.title;
+                detailTitle.textContent = summariesData.data.title_japanese || summariesData.data.title;
 
                 // メイン画像を取得
-                let mainImg = summuriesData.data.images.jpg.large_image_url || summuriesData.data.images.jpg.image_url;
+                let mainImg = summariesData.data.images.jpg.large_image_url || summariesData.data.images.jpg.image_url;
 
-                // 情報を取得
+                // ジャンルを取得
                 let genres = "ジャンル: ";
-                if (summuriesData.data.genres.length == 0) {
+                if (!summariesData.data.genres || summariesData.data.genres.length == 0) {
                     genres += "ジャンル情報が見つかりませんでした。";
                 } else {
-                    genres += summuriesData.data.genres.map(item => item.name);
+                    genres += summariesData.data.genres.map(item => item.name);
+                }
+
+                //　放送時期を取得
+                let air = "放送時期: ";
+                let prop = summariesData.data.aired.prop;
+                let airFrom = `${prop.from.year}年${prop.from.month}月${prop.from.day}日`;
+                air += `${airFrom}`;
+                // 放送がすでに終了していた場合
+                if (summariesData.data.status === "Finished Airing") {
+                    if (prop.to.year) {
+                        let airTo = `${prop.to.year}年${prop.to.month}月${prop.to.day}日`;
+                        // 開始日と終了日が同じ場合を除く
+                        if (airFrom !== airTo) {
+                            air += ` ～ ${airTo}`;
+                        }
+                    }
+                } else {
+                    air += " ～ (放送中)";
                 }
 
                 // あらすじを取得
                 let synopsis = "あらすじ: ";
-                if (!summuriesData.data.synopsis || summuriesData.data.synopsis == "") {
+                if (!summariesData.data.synopsis || summariesData.data.synopsis == "") {
                     synopsis += "あらすじ情報が見つかりませんでした。";
                     
                 } else {
-                    synopsis += summuriesData.data.synopsis;
+                    synopsis += summariesData.data.synopsis;
                 }
 
                 // アニメの評価点数(10点満点中)を取得
-                let score = `評価: ${summuriesData.data.score}/10`;
+                let score = `評価: ${summariesData.data.score}/10`;
 
                 // 取得した詳細情報を表示
                 contentArea.innerHTML = `
                     
                     <img src="${mainImg}"/>
                     <div>
+                        <p>${air}</p>
                         <p>${genres}<p>
                         <p>${score}</p>
                         <p>${synopsis}</p>
