@@ -8,6 +8,9 @@ let resultQuantity = quantity.value;
 // フォームのDOMを取得
 let form = document.getElementById("form");
 
+// お気に入りリスト表示用ボタンのDOMを取得
+let showFav = document.getElementById("show-fav");
+
 // 取得したアニメを保存しておく配列と、作品名を保存しておく変数
 let list = [];
 let currentTitle;
@@ -41,6 +44,18 @@ form.addEventListener("submit", (e)=>{
     getAnimeRecommendations(searchWord);
     
 });
+
+// お気に入りリストボタンがクリックされた時の処理
+showFav.addEventListener("click", () => {
+    // localStorageからデータを取得
+    list = getFavorite();
+    if (list.length == 0) {
+        alert("リストに登録された作品がまだありません！");
+        return;
+    }
+    currentTitle = "保存済みのアニメ";
+    sortAndDisplayAnimeList();
+})
 
 //　入力された作品名を引数にして、おススメのアニメを取ってくる関数
 async function getAnimeRecommendations(animeName) {
@@ -120,11 +135,23 @@ function sortAndDisplayAnimeList() {
     if (displayList.length===0) {
         resultTxt = "<p>おススメのアニメが見つかりませんでした。他のものをお試しください。</p>"
     } else {
-        resultTxt = `<h2>「${currentTitle}」を見たあなたにおススメのアニメは……</h2><ul>`
+        if (currentTitle === "保存済みのアニメ") {
+            resultTxt = `<h2>${currentTitle}</h2>`;
+        } else {
+            resultTxt = `<h2>「${currentTitle}」を見たあなたにおススメのアニメは……</h2><ul>`;
+        }
 
         // listの数だけHTMLを生成
         for(let element of displayList){
             try {
+                // お気に入りリストに保存済みだった場合、クラスを変更する
+                let activeClass = "";
+                let star = "☆";
+                if (isFavorite(element.entry.mal_id)) {
+                    activeClass = "active";
+                    star = "★"
+                }
+
                 // click-btnクラスのボタンにdata-id属性でアニメIDを埋めておく
                 resultTxt += `
                     <li>
@@ -133,15 +160,18 @@ function sortAndDisplayAnimeList() {
                                 <img src="${element.entry.images.jpg.image_url}"/>
                                 <div>${element.entry.title}</div>
                             </a>
+                            <div class="votes">おススメ度(Votes): ${element.votes || "-"};
                         </div>
+                        <button class="fav-btn ${activeClass}" data-id="${element.entry.mal_id}">${star}</button>
                         <button class="click-btn" data-id="${element.entry.mal_id}">詳細を見る</button>
                         <div class="popup-wrapper" style="display:none;">
                             <div class="popup-inside">
                                 <button class="close-btn">X</button>
                                 <h2 class="detail-title"></h3>
                                 <div class="detail-content">
-                                    <p>読み込み中……</p>
+                                <p>読み込み中……</p>
                                 </div>
+                                <button class="fav-btn ${activeClass}" data-id="${element.entry.mal_id}">${star}</button>
                                 <a class="translateSender" href="https://www.deepl.com/ja/translator" target="_blank" rel="noopener noreferrer">翻訳サイトへ(DeepLに遷移します)</a>
                             </div>
                         </div>
@@ -159,6 +189,38 @@ function sortAndDisplayAnimeList() {
 
 // 生成されたボタンたちにイベントを付与する関数
 function setButtonEvents() {
+    // お気に入りボタンのDOMを取得
+    let favButtons = document.querySelectorAll(".fav-btn");
+    favButtons.forEach(btn => {
+        btn.addEventListener("click", function() {
+            // 埋め込んでおいたアニメIDを取得
+            let dataId = this.getAttribute("data-id");
+
+            // displayList(現在表示されているやつ)から対象のデータを探す
+            let target = list.find(item => item.entry.mal_id == dataId);
+
+            if (target) {
+                // 保存処理
+                let isAdded = changeFavorite(target);
+
+                // ボタンの切り替え
+                if (isAdded) {
+                    this.classList.add("active");
+                    this.textContent = "★";
+                } else {
+                    this.classList.remove("active");
+                    this.textContent = "☆";
+
+                    // お気に入りリストの表示中に、リストからの削除が実行されたら、最新の保存リストに更新してから表示する
+                    if (currentTitle === "保存済みのアニメ") {
+                        list = getFavorite();
+                        sortAndDisplayAnimeList();
+                    }
+                }
+            }
+        })
+    })
+
     // あらすじ表示用ボタンのDOMを取得
     let buttons = document.querySelectorAll(".click-btn");
     
@@ -292,4 +354,52 @@ function setButtonEvents() {
             }
         });
     });
+}
+
+// お気に入りを取得
+function getFavorite() {
+    let favs = localStorage.getItem("favAnime");
+    if (favs) {
+        return JSON.parse(favs);
+    } else {
+        return [];
+    }
+}
+
+// お気に入りに追加・削除
+function changeFavorite(animeData) {
+    let favs = getFavorite();
+
+    // 保存状態の確認をIDで行う
+    let index = favs.findIndex(item => item.entry.mal_id === animeData.entry.mal_id);
+
+    // すでに保存されていれば削除、なければ追加する
+    if (index >= 0) {
+        favs.splice(index, 1);
+        alert("リストから削除しました");
+    } else {
+        favs.push(animeData);
+        alert("お気に入りリストに保存しました!");
+    }
+
+    if (favs.length == 0 && currentTitle === "保存済みのアニメ") {
+        result.innerHTML = "";
+    }
+    
+    // 処理を保存
+    localStorage.setItem("favAnime", JSON.stringify(favs));
+
+    // 追加していた場合
+    if (index === -1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// 指定したIDが現在お気に入りの中にあるか確認する
+function isFavorite(id) {
+    let favs = getFavorite();
+    let isFav = favs.some(item => item.entry.mal_id == id);
+    return isFav;
 }
